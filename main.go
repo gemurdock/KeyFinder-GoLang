@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gemurdock/KeyFinder-GoLang/api/middleware"
 	"github.com/gemurdock/KeyFinder-GoLang/api/route"
+	"github.com/gemurdock/KeyFinder-GoLang/config"
 	"github.com/gemurdock/KeyFinder-GoLang/db"
 	"github.com/gemurdock/KeyFinder-GoLang/db/migrations"
 	"github.com/go-chi/chi/v5"
@@ -15,14 +15,14 @@ import (
 )
 
 func main() {
-	// Get enviroment variables
-	port := os.Getenv("APP_PORT")
+	config := config.GetConfigInstance(true)
 
 	// Setup router
 	r := setupRouter()
 
 	// Connect to database
 	dbi := db.GetDatabaseInstance()
+	dbi.LoadConfig(config)
 	err := dbi.ConnectToDatabase()
 	if err != nil {
 		panic(err)
@@ -30,8 +30,8 @@ func main() {
 
 	runStartupTasks(dbi.GetConnection())
 
-	fmt.Println("Server running on port " + port)
-	http.ListenAndServe(":"+port, r)
+	fmt.Println("Server running on port " + config.AppPort)
+	http.ListenAndServe(":"+config.AppPort, r)
 }
 
 func runStartupTasks(db *gorm.DB) {
