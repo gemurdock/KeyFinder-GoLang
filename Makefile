@@ -18,6 +18,10 @@ clean:
 	@echo "Cleaning up..."
 	rm -f $(APP_NAME)
 
+stop:
+	@echo "Shutting down Docker Compose..."
+	docker compose down
+
 start: build docker-compose clean
 
 .PHONY: build docker-compose clean start
