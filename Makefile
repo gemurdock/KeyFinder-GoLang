@@ -24,4 +24,4 @@ stop:
 
 start: build docker-compose clean
 
-.PHONY: build docker-compose clean start
+.PHONY: build docker-compose clean stop start
