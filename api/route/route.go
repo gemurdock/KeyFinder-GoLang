@@ -3,6 +3,7 @@ package route
 import (
 	"net/http"
 
+	"github.com/gemurdock/KeyFinder-GoLang/api/handlers"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -30,6 +31,10 @@ func CreateAccountRoutes(r chi.Router) {
 	r.Post("/token-refresh", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotImplemented)
 		w.Write([]byte("Error: Not implemented"))
+	})
+
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		handlers.HomeHandler(w, r)
 	})
 }
 
