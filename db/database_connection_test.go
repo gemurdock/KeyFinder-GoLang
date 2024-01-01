@@ -11,31 +11,10 @@ import (
 var dbi *db.DatabaseConnection
 
 func setup(t *testing.T) func(t *testing.T) {
-	p := test.PostgresContainer{}
-	err := p.Create()
-	if err != nil {
-		t.Errorf("Failed to create postgres container: %v", err)
-		t.FailNow()
-	}
-	fmt.Println("Postgres container started")
-
-	dbi = db.GetDatabaseInstance()
-	dbi.LoadConfig(p.GetConfig())
-	err = dbi.ConnectToDatabase()
-	if err != nil {
-		t.Errorf("Failed to connect to database: %v", err)
-		t.FailNow()
-	}
-	fmt.Println("Database connection established")
-
+	conn, dbTeardown := test.SetupDBConn(t)
+	dbi = conn
 	return func(t *testing.T) {
-		dbi.CloseConnection()
-		err = p.Destroy()
-		if err != nil {
-			t.Errorf("Failed to destroy postgres container: %v", err)
-			t.FailNow()
-		}
-		fmt.Println("Postgres container destroyed")
+		dbTeardown(t)
 	}
 }
 
