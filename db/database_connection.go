@@ -71,7 +71,7 @@ func (dc *DatabaseConnection) ConnectToDatabase() error {
 		db, err = gorm.Open(postgres.Open(connectionString), &gorm.Config{})
 		if err != nil {
 			retryCount++
-			fmt.Printf("(%d of %d) Failed to connect to database. Retrying in 5 seconds. Error: %s\n", retryCount, maxRetries, err.Error())
+			fmt.Printf("(%d of %d) Failed to connect to database. Retrying in 2 seconds. Error: %s\n", retryCount, maxRetries, err.Error())
 			time.Sleep(2 * time.Second)
 		} else {
 			break

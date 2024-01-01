@@ -25,19 +25,23 @@ type PostgresContainer struct {
 	port      string
 }
 
-func (p *PostgresContainer) LoadConfig(config *config.Config) {
-	p.appConfig = config
-}
-
 func (p *PostgresContainer) GetConnInfo() (string, string) {
 	return p.host, p.port
 }
 
-func (p *PostgresContainer) Create(ctx context.Context) error {
+func (p *PostgresContainer) GetConfig() *config.Config {
+	return p.appConfig
+}
+
+func (p *PostgresContainer) Create() error {
+	p.ctx = context.Background()
+	config := config.GetConfigInstance(false)
+	config.LoadTestingValues()
+	p.appConfig = config
+
 	if p.appConfig == nil {
 		panic("appConfig is nil")
 	}
-	p.ctx = ctx
 
 	req := testcontainers.ContainerRequest{
 		Image:        "postgres",
@@ -65,6 +69,7 @@ func (p *PostgresContainer) Create(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	p.appConfig.DBHost, p.appConfig.DBPort = p.host, p.port // update config with test container values
 
 	return nil
 }
