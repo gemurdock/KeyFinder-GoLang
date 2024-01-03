@@ -1,26 +1,18 @@
 package handlers
 
 import (
-	"html/template"
+	"fmt"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/gemurdock/KeyFinder-GoLang/config"
+	"github.com/gemurdock/KeyFinder-GoLang/util"
 )
 
 type HomeData struct {
 	TodaysNumber string
-}
-
-func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
-	t, err := template.ParseFiles("template/layout.html", "template/"+tmpl+".html")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	err = t.Execute(w, data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
@@ -33,5 +25,12 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		TodaysNumber: dayOfMonth,
 	}
 
-	renderTemplate(w, "home", data)
+	appDir, err := config.GetAppWorkingDir() // todo: move to util; before caused error due to recursion in imports
+	if err != nil {
+		fmt.Println("Error getting app working directory...")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	tmplPath := filepath.Join(appDir, "template")
+	util.RenderTemplate(w, tmplPath, "home", data)
 }

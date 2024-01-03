@@ -1,7 +1,8 @@
-package db_test
+package handlers
 
 import (
-	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/gemurdock/KeyFinder-GoLang/db"
@@ -18,7 +19,7 @@ func setup(t *testing.T) func(t *testing.T) { // todo: single setup/teardown for
 	}
 }
 
-func Test_Database_Connection_With_Postgres(t *testing.T) {
+func TestHomeHandler(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping this test in short mode")
 	}
@@ -26,12 +27,16 @@ func Test_Database_Connection_With_Postgres(t *testing.T) {
 	teardown := setup(t)
 	defer teardown(t)
 
-	fmt.Println("Pinging database")
-	success, err := dbi.Ping()
-	fmt.Println("Database pinged")
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	if !success || err != nil {
-		t.Errorf("Failed to ping database: %v", err)
-		t.FailNow()
+	recorder := httptest.NewRecorder()
+
+	HomeHandler(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		t.Errorf("expected status code %d, but got %d", http.StatusOK, recorder.Code)
 	}
 }

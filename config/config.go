@@ -3,8 +3,11 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"sync"
+
+	"github.com/gemurdock/KeyFinder-GoLang/util"
 )
 
 var lock = &sync.Mutex{}
@@ -18,6 +21,7 @@ type Config struct {
 	DBUser     string
 	DBPassword string
 	DBName     string
+	AppDir     string
 }
 
 type ConfigError struct {
@@ -38,6 +42,46 @@ func GetConfigInstance(autoload bool) *Config {
 	return singleton
 }
 
+func GetAppWorkingDir() (string, error) {
+	if singleton != nil && singleton.AppDir != "" {
+		return singleton.AppDir, nil
+	}
+	lock.Lock()
+	defer lock.Unlock()
+	if singleton == nil {
+		singleton = &Config{}
+	}
+
+	uniqueAppFiles := []string{
+		"variables.env", "variables.env.default", "Makefile", "LICENSE",
+	}
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+checkpath:
+	filenames, err := util.GetAllFilesInPath(dir)
+	if err != nil {
+		return "", err
+	}
+
+	for _, filename := range filenames {
+		for _, uniqueAppFile := range uniqueAppFiles {
+			if filename == uniqueAppFile {
+				return dir, nil
+			}
+		}
+	}
+
+	if dir != "/" { // Continue to check until root or app working dir is found
+		dir = filepath.Dir(dir)
+		goto checkpath
+	}
+
+	return "", fmt.Errorf("could not find app working directory")
+}
+
 func (c *Config) Load() {
 	c.AppHost = os.Getenv("APP_HOST")
 	c.AppPort = os.Getenv("APP_PORT")
@@ -46,6 +90,7 @@ func (c *Config) Load() {
 	c.DBUser = os.Getenv("POSTGRES_USER")
 	c.DBPassword = os.Getenv("POSTGRES_PASSWORD")
 	c.DBName = os.Getenv("POSTGRES_DB")
+	c.loadAppDir()
 
 	c.Validate()
 }
@@ -58,6 +103,7 @@ func (c *Config) LoadTestingValues() {
 	c.DBUser = "postgres"
 	c.DBPassword = "password"
 	c.DBName = "keyfinder_test"
+	c.loadAppDir()
 
 	c.Validate()
 }
@@ -71,4 +117,14 @@ func (c *Config) Validate() error {
 		}
 	}
 	return nil
+}
+
+func (c *Config) loadAppDir() {
+	if c.AppDir == "" {
+		appDir, err := GetAppWorkingDir()
+		if err != nil {
+			panic(err)
+		}
+		c.AppDir = appDir
+	}
 }

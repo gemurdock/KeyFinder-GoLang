@@ -23,7 +23,6 @@ func SetupDBConn(t *testing.T) (*db.DatabaseConnection, func(t *testing.T)) {
 		t.Errorf("Failed to connect to database: %v", err)
 		t.FailNow()
 	}
-	fmt.Println("Database connection established")
 
 	return dbi, func(t *testing.T) {
 		dbi.CloseConnection()

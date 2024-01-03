@@ -22,6 +22,10 @@ stop:
 	@echo "Shutting down Docker Compose..."
 	docker compose down
 
+test:
+	@echo "Running tests..."
+	go test -v ./...
+
 start: build docker-compose clean
 
-.PHONY: build docker-compose clean stop start
+.PHONY: build docker-compose clean stop start test
